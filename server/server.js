@@ -75,8 +75,9 @@ function shuffleArray(arr) {
 // ── Admin auth ──
 const ADMIN_USER = process.env.ADMIN_USER;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-if (!ADMIN_USER || !ADMIN_PASSWORD) {
-  console.error('[Auth] ERROR: Debes definir ADMIN_USER y ADMIN_PASSWORD en .env');
+const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH;
+if (!ADMIN_USER || (!ADMIN_PASSWORD && !ADMIN_PASSWORD_HASH)) {
+  console.error('[Auth] ERROR: Debes definir ADMIN_USER y ADMIN_PASSWORD (o ADMIN_PASSWORD_HASH) en .env');
   process.exit(1);
 }
 const adminSessions = new Map();
@@ -368,7 +369,9 @@ app.get('/api/deals', async (req, res) => {
 });
 
 (async function start() {
-  if (BCRYPT_PREFIX.test(ADMIN_PASSWORD)) {
+  if (ADMIN_PASSWORD_HASH) {
+    adminPasswordHash = ADMIN_PASSWORD_HASH;
+  } else if (BCRYPT_PREFIX.test(ADMIN_PASSWORD)) {
     adminPasswordHash = ADMIN_PASSWORD;
   } else {
     try {
