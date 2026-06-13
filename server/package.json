@@ -1,0 +1,18 @@
+{
+  "name": "tienda-afiliados-pro-server",
+  "version": "1.0.0",
+  "description": "Backend para Tienda Afiliados Pro - extrae datos de productos de Amazon",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cheerio": "1.0.0-rc.12",
+    "dotenv": "16.4.7",
+    "express": "4.21.1",
+    "helmet": "^8.2.0",
+    "paapi5-nodejs-sdk": "^1.0.0"
+  }
+}

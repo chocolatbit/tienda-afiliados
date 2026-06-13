@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Tienda de afiliados Amazon. Descubre los mejores productos en electrónica, hogar y moda con los mejores precios. Ofertas exclusivas actualizadas diariamente.">
+  <title>Afiliados Pro - Tienda</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛒</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-inner">
+      <a href="#" class="logo">Afiliados<span>Pro</span></a>
+      <div class="header-actions">
+        <button class="theme-toggle" id="themeToggle" title="Cambiar modo">&#127769;</button>
+        <button class="admin-gear" id="adminGear" title="Administraci&oacute;n">&#9881;</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="nav" id="categoryNav">
+    <div class="nav-inner">
+      <button class="nav-btn" data-category="inicio" id="navInicio">Inicio</button>
+      <button class="nav-btn" data-category="all">Todos</button>
+      <button class="nav-btn" data-category="electronica">Electr&oacute;nica</button>
+      <button class="nav-btn" data-category="hogar">Hogar</button>
+      <button class="nav-btn" data-category="moda">Moda</button>
+    </div>
+    <div class="sub-nav" id="subNav"></div>
+  </nav>
+
+  <section class="hero" id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <div class="hero-text">
+        <span class="hero-badge">Ofertas exclusivas</span>
+        <h1 class="hero-title">Los mejores productos en <span class="hero-highlight">Amazon</span></h1>
+        <p class="hero-desc">Descubre las mejores ofertas en electr&oacute;nica, hogar, moda y m&aacute;s. Precios actualizados diariamente.</p>
+        <div class="hero-actions">
+          <a href="https://www.amazon.es/s?k=ofertas&tag=2mideu-21" target="_blank" rel="noopener noreferrer" class="hero-btn hero-btn-primary">Ver ofertas en Amazon</a>
+          <a href="#products" class="hero-btn hero-btn-secondary">Explorar productos</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-floating-card card-1">
+          <span class="card-icon">&#128187;</span>
+          <div class="card-info">
+            <strong>Electr&oacute;nica</strong>
+            <small>Hasta -40%</small>
+          </div>
+        </div>
+        <div class="hero-floating-card card-2">
+          <span class="card-icon">&#127968;</span>
+          <div class="card-info">
+            <strong>Hogar</strong>
+            <small>Ofertas del d&iacute;a</small>
+          </div>
+        </div>
+        <div class="hero-floating-card card-3">
+          <span class="card-icon">&#128083;</span>
+          <div class="card-info">
+            <strong>Moda</strong>
+            <small>Nueva colecci&oacute;n</small>
+          </div>
+        </div>
+        <div class="hero-float-circle circle-1"></div>
+        <div class="hero-float-circle circle-2"></div>
+      </div>
+    </div>
+    <div class="hero-wave">
+      <svg viewBox="0 0 1440 100" preserveAspectRatio="none">
+        <path d="M0,50 C360,100 1080,0 1440,50 L1440,100 L0,100 Z" fill="var(--bg)"/>
+      </svg>
+    </div>
+  </section>
+
+  <main class="main">
+    <div class="amazon-native-banner" style="display:none">
+      <a href="https://www.amazon.es/s?k=ofertas&tag=2mideu-21" target="_blank" rel="noopener noreferrer" class="banner-header">
+        <span class="banner-logo">&#9729; Amazon</span>
+        <span class="banner-label">PUBLICIDAD</span>
+      </a>
+      <div id="amazonNativeAd" class="amazon-native-ad-container"></div>
+    </div>
+
+    <div id="products"></div>
+    <div class="search-bar">
+      <input type="search" id="searchInput" placeholder="Buscar productos..." autocomplete="off">
+      <button id="searchClearBtn" class="search-clear" title="Limpiar">&times;</button>
+    </div>
+    <h1 class="section-title" id="sectionTitle">
+      <span class="highlight">Productos</span> destacados
+      <a href="#" class="amazon-search-link" id="amazonSearchLink" target="_blank" rel="noopener">Buscar en Amazon &rarr;</a>
+    </h1>
+
+    <div class="inicio-layout" id="inicioLayout" style="display:none;">
+      <aside class="chat-sidebar" id="chatSidebar">
+        <div class="chat-header">
+          <span class="chat-icon">&#129302;</span>
+          <span>Asistente Amazon</span>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-msg assistant">
+            &#161;Hola! Soy tu asistente de compras en Amazon. Puedes pedirme que busque productos, recomiende o te ayude a encontrar lo que necesitas. <strong>Ejemplo</strong>: <em>"busca un port&aacute;til gaming por 800€"</em>
+          </div>
+        </div>
+        <div class="chat-input-wrap">
+          <input type="text" id="chatInput" placeholder="Escribe tu consulta..." autocomplete="off">
+          <button id="chatSendBtn" title="Enviar">&#10148;</button>
+        </div>
+        <div class="chat-footer">Enlaces de afiliado &mdash; &copy; Afiliados Pro</div>
+      </aside>
+
+      <div class="inicio-content" id="inicioContent">
+        <div class="inicio-hero">
+          <h1>Bienvenido a <span>Afiliados Pro</span></h1>
+          <p>Tu tienda de confianza para encontrar los mejores productos en Amazon. Usa el asistente inteligente para buscar, comparar y comprar con los mejores precios.</p>
+          <div class="inicio-features">
+            <div class="inicio-feature">
+              <div class="feat-icon">&#128269;</div>
+              <h3>Busca productos</h3>
+              <p>Pregunta al asistente por cualquier producto</p>
+            </div>
+            <div class="inicio-feature">
+              <div class="feat-icon">&#128176;</div>
+              <h3>Mejores precios</h3>
+              <p>Enlaces directos a Amazon con tu afiliado</p>
+            </div>
+            <div class="inicio-feature">
+              <div class="feat-icon">&#9889;</div>
+              <h3>Recomendaciones</h3>
+              <p>El asistente te recomienda lo mejor</p>
+            </div>
+            <div class="inicio-feature">
+              <div class="feat-icon">&#128279;</div>
+              <h3>Enlace directo</h3>
+              <p>Un clic para comprar en Amazon</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-layout" id="mainLayout">
+      <div class="main-content">
+        <div class="product-grid" id="productGrid"></div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+      <aside class="sidebar" id="sidebar">
+        <div id="amazonWidgetContainer"></div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>&copy; 2026 <a href="#">Afiliados Pro</a> &mdash; Tienda de afiliados. Los precios y disponibilidad pueden variar.</p>
+    <p class="footer-cookie-links">
+      <a href="#" data-cookie-action="policy">Pol&iacute;tica de cookies</a>
+      &middot;
+      <a href="#" data-cookie-action="revoke">Gestionar cookies</a>
+    </p>
+  </footer>
+
+  <!-- Admin Login Modal -->
+  <div class="modal-overlay" id="adminLoginModal">
+    <div class="modal modal-login">
+      <button class="close-btn" id="adminLoginClose">&times;</button>
+      <h2>Acceso Administrador</h2>
+      <p class="subtitle">Inicia sesi&oacute;n para gestionar la tienda</p>
+      <form id="adminLoginForm">
+        <label>Usuario</label>
+        <input type="text" id="adminUserInput" placeholder="Usuario" autocomplete="off">
+        <label>Contrase&ntilde;a</label>
+        <input type="password" id="adminPasswordInput" placeholder="Contrase&ntilde;a">
+        <p id="loginError" style="color:#EF4444;font-size:0.85rem;display:none;margin:0 0 8px 0;"></p>
+        <button type="submit" class="submit-btn">Iniciar sesi&oacute;n</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard Modal -->
+  <div class="modal-overlay" id="adminModal">
+    <div class="modal modal-admin">
+      <div class="admin-modal-header">
+        <h2>Panel de Administraci&oacute;n</h2>
+        <button class="close-btn" id="adminClose">&times;</button>
+      </div>
+
+      <form id="adminForm">
+        <div class="full">
+          <label>URL del producto en Amazon</label>
+          <div class="url-input-row">
+            <input type="url" id="fieldAmazonUrl" placeholder="https://www.amazon.es/dp/B0XXXXX" required>
+            <button type="submit" id="autoFillBtn" class="autofill-btn">&#10133; Agregar</button>
+          </div>
+        </div>
+        <div>
+          <label>Categor&iacute;a</label>
+          <select id="fieldCategory">
+            <option value="electronica">Electr&oacute;nica</option>
+            <option value="hogar">Hogar</option>
+            <option value="moda">Moda</option>
+          </select>
+        </div>
+        <div id="imageUrlGroup" style="display:none;">
+          <label>URL de la imagen (manual)</label>
+          <input type="url" id="fieldImageUrl" placeholder="https://ejemplo.com/imagen.jpg">
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">La imagen no se detect&oacute; autom&aacute;ticamente. Pega la URL manualmente y haz clic en Confirmar.</p>
+        </div>
+      </form>
+
+      <div class="admin-products-title">&#128230; Productos existentes (<span id="adminCount">0</span>)</div>
+      <div class="admin-product-list" id="adminList"></div>
+
+      <hr>
+      <button id="adminLogoutBtn" class="logout-btn">Cerrar sesi&oacute;n</button>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Cookie Consent Banner -->
+  <div id="cookieBanner" class="cookie-banner">
+    <div class="cookie-banner-inner">
+      <div class="cookie-text">
+        <p>Usamos cookies propias y de terceros para mejorar tu experiencia, mostrar anuncios personalizados de Amazon y analizar el tr&aacute;fico. Al hacer clic en &laquo;Aceptar todas&raquo;, aceptas el uso de todas las cookies. Puedes aceptar solo las necesarias u obtener m&aacute;s informaci&oacute;n en nuestra <a href="#" data-cookie-action="policy">Pol&iacute;tica de cookies</a>.</p>
+      </div>
+      <div class="cookie-actions">
+        <button id="cookieAcceptNecessary" class="cookie-btn cookie-btn-secondary">Solo necesarias</button>
+        <button id="cookieAcceptAll" class="cookie-btn cookie-btn-primary">Aceptar todas</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cookie Policy Modal -->
+  <div class="modal-overlay" id="cookiePolicyModal">
+    <div class="modal modal-cookies">
+      <button class="close-btn" id="cookiePolicyClose">&times;</button>
+      <h2>Pol&iacute;tica de Cookies</h2>
+      <p class="subtitle">Informaci&oacute;n sobre el uso de cookies en Afiliados Pro</p>
+      <div class="cookie-policy-content">
+        <h3>&iquest;Qu&eacute; son las cookies?</h3>
+        <p>Las cookies son peque&ntilde;os archivos de texto que se almacenan en tu dispositivo cuando visitas un sitio web.</p>
+        <h3>Cookies necesarias</h3>
+        <p>Son esenciales para el funcionamiento del sitio. Almacenan tus preferencias de visualizaci&oacute;n (tema oscuro) y los productos que has agregado. No requieren consentimiento.</p>
+        <h3>Cookies de marketing</h3>
+        <p>Utilizamos cookies de afiliados de Amazon para poder mostrar anuncios personalizados y comisionar por las compras realizadas a trav&eacute;s de nuestros enlaces. Estas cookies requieren tu consentimiento.</p>
+        <h3>&iquest;C&oacute;mo gestionarlas?</h3>
+        <p>Puedes aceptar o rechazar las cookies de marketing en cualquier momento desde el enlace &laquo;Gestionar cookies&raquo; en el footer.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.4/purify.min.js" integrity="sha512-L4N3l9W3L2a40l24BZRxUoAy2QJqqYwO6B+RPaasGTg4YwYKJrFqQ8S3RjDLf1QDXG0/1KMs6LiVb1UdzAMh6g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="js/config.js"></script>
+  <script src="js/cookies.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    window.amznAssocConfig = {
+      adType: 'smart',
+      trackingId: '2mideu-21',
+      marketplace: 'amazon.es',
+      region: 'EU',
+      width: 'auto',
+      height: 'auto',
+      searchType: 'search',
+      searchTerm: 'ofertas',
+      category: 'All',
+      theme: 'light',
+      bgColor: 'FFFFFF',
+      textColor: '000000',
+      linkColor: '0066C0',
+      rows: 2,
+      columns: 3
+    };
+  </script>
+</body>
+</html>
