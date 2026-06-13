@@ -403,47 +403,62 @@ const App = {
     this.sectionTitle.innerHTML = '<span class="highlight">' + label + '</span> <span style="font-size:0.8rem;font-weight:400;color:var(--text-muted)">(' + count + ')</span>';
   },
 
+  loadFromData(data) {
+    var seedAsins = {};
+    for (var i = 0; i < data.length; i++) {
+      var a = Products.extractASINfromLink(data[i].affiliateLink);
+      if (a) seedAsins[a] = data[i];
+    }
+    var existing = Products.getAll();
+    var keep = [];
+    for (var i = 0; i < existing.length; i++) {
+      var a = Products.extractASINfromLink(existing[i].affiliateLink);
+      if (a && seedAsins[a]) continue;
+      keep.push(existing[i]);
+    }
+    var all = keep.slice();
+    for (var i = 0; i < data.length; i++) {
+      all.push({
+        id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+        name: (data[i].name || '').trim(),
+        image: (data[i].image || '').trim(),
+        price: (data[i].price || '').trim(),
+        originalPrice: data[i].originalPrice || '',
+        discountPercent: data[i].discountPercent || '',
+        dealBadge: data[i].dealBadge || '',
+        affiliateLink: (data[i].affiliateLink || '').trim(),
+        category: data[i].category || '',
+        subcategory: data[i].subcategory || ''
+      });
+    }
+    Products.items = all;
+    Products.save();
+    localStorage.setItem('afiliadospro_seeded', 'v14');
+    this.render();
+  },
+
   loadSeed() {
     var self = this;
     var seededVersion = localStorage.getItem('afiliadospro_seeded');
-        if (seededVersion === 'v14') return;
-    fetch(API_BASE + '/api/seed')
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        if (!data || !data.length) return;
-        var seedAsins = {};
-        for (var i = 0; i < data.length; i++) {
-          var a = Products.extractASINfromLink(data[i].affiliateLink);
-          if (a) seedAsins[a] = data[i];
-        }
-        var existing = Products.getAll();
-        var keep = [];
-        for (var i = 0; i < existing.length; i++) {
-          var a = Products.extractASINfromLink(existing[i].affiliateLink);
-          if (a && seedAsins[a]) continue;
-          keep.push(existing[i]);
-        }
-        var all = keep.slice();
-        for (var i = 0; i < data.length; i++) {
-          all.push({
-            id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
-            name: (data[i].name || '').trim(),
-            image: (data[i].image || '').trim(),
-            price: (data[i].price || '').trim(),
-            originalPrice: data[i].originalPrice || '',
-            discountPercent: data[i].discountPercent || '',
-            dealBadge: data[i].dealBadge || '',
-            affiliateLink: (data[i].affiliateLink || '').trim(),
-            category: data[i].category || '',
-            subcategory: data[i].subcategory || ''
-          });
-        }
-        Products.items = all;
-        Products.save();
-        localStorage.setItem('afiliadospro_seeded', 'v14');
-        self.render();
-      })
-      .catch(function() {});
+    if (seededVersion === 'v14') return;
+
+    if (API_BASE) {
+      fetch(API_BASE + '/api/seed')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data || !data.length) return;
+          self.loadFromData(data);
+        })
+        .catch(function() {
+          if (typeof FALLBACK_SEED_DATA !== 'undefined') {
+            self.loadFromData(FALLBACK_SEED_DATA);
+          }
+        });
+    } else {
+      if (typeof FALLBACK_SEED_DATA !== 'undefined') {
+        self.loadFromData(FALLBACK_SEED_DATA);
+      }
+    }
   },
 
   loadTheme() {
@@ -482,6 +497,7 @@ const App = {
   },
 
   autoUpdatePrices() {
+    if (!API_BASE) return;
     var productsWithAsin = [];
     var all = Products.getAll();
     for (var i = 0; i < all.length; i++) {
@@ -517,6 +533,43 @@ const App = {
     });
   },
 
+  renderWidgetProducts(products, container) {
+    if (products.length === 0) {
+      container.innerHTML = '<div class="widget-placeholder"><div class="icon">\uD83D\uDCE6</div>No hay ofertas disponibles<br><small>Intenta m\u00E1s tarde</small></div>';
+      return;
+    }
+    var html = '<div class="widget-title">\uD83D\uDD25 Ofertas en Amazon</div>';
+    for (var i = 0; i < products.length; i++) {
+      var p = products[i];
+      html +=
+        '<div class="widget-product">' +
+          '<a href="' + escapeHtml(p.url) + '" target="_blank" rel="noopener noreferrer" class="widget-product-link">' +
+            '<div class="widget-product-img-wrap">' +
+              '<img src="' + escapeHtml(p.image) + '" alt="' + escapeHtml(p.title) + '" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src=\'/placeholder.svg\'">' +
+            '</div>' +
+            '<div class="widget-product-info">' +
+              '<div class="widget-product-name">' + escapeHtml(p.title) + '</div>' +
+              '<div class="widget-product-price">' + escapeHtml(p.price) + '</div>' +
+            '</div>' +
+          '</a>' +
+        '</div>';
+    }
+    container.innerHTML = html;
+    container.querySelectorAll('.widget-product').forEach(function(el, i) {
+      el.classList.add('fade-up');
+      el.style.transitionDelay = (i * 0.08) + 's';
+      var obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            obs.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+      obs.observe(el);
+    });
+  },
+
   loadWidget() {
     var container = document.getElementById('amazonWidgetContainer');
     if (!container) return;
@@ -525,49 +578,22 @@ const App = {
       '<div id="widgetLoading" style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.85rem;">Cargando ofertas...</div>';
 
     var self = this;
-    fetch(API_BASE + '/api/deals?count=10&category=Electronics')
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        var products = data.products || [];
-        if (products.length === 0) {
-          container.innerHTML = '<div class="widget-placeholder"><div class="icon">\uD83D\uDCE6</div>No hay ofertas disponibles<br><small>Intenta m\u00E1s tarde</small></div>';
-          return;
-        }
-        var html = '<div class="widget-title">\uD83D\uDD25 Ofertas en Amazon</div>';
-        for (var i = 0; i < products.length; i++) {
-          var p = products[i];
-          html +=
-            '<div class="widget-product">' +
-              '<a href="' + escapeHtml(p.url) + '" target="_blank" rel="noopener noreferrer" class="widget-product-link">' +
-                '<div class="widget-product-img-wrap">' +
-                  '<img src="' + escapeHtml(p.image) + '" alt="' + escapeHtml(p.title) + '" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src=\'/placeholder.svg\'">' +
-                '</div>' +
-                '<div class="widget-product-info">' +
-                  '<div class="widget-product-name">' + escapeHtml(p.title) + '</div>' +
-                  '<div class="widget-product-price">' + escapeHtml(p.price) + '</div>' +
-                '</div>' +
-              '</a>' +
-            '</div>';
-        }
-        container.innerHTML = html;
+    var useDeals = API_BASE ? function(cb) {
+      fetch(API_BASE + '/api/deals?count=10&category=Electronics')
+        .then(function(r) { return r.json(); })
+        .then(function(data) { cb(data.products || []); })
+        .catch(function() { cb(null); });
+    } : function(cb) { cb(null); };
 
-        container.querySelectorAll('.widget-product').forEach(function(el, i) {
-          el.classList.add('fade-up');
-          el.style.transitionDelay = (i * 0.08) + 's';
-          var obs = new IntersectionObserver(function(entries) {
-            entries.forEach(function(entry) {
-              if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-                obs.unobserve(entry.target);
-              }
-            });
-          }, { threshold: 0.1 });
-          obs.observe(el);
-        });
-      })
-      .catch(function() {
-        container.innerHTML = '<div class="widget-placeholder"><div class="icon">\uD83D\uDCE6</div>No se pudieron cargar las ofertas<br><small>Verifica que el servidor est\u00E9 corriendo</small></div>';
-      });
+    useDeals(function(products) {
+      if (products && products.length > 0) {
+        self.renderWidgetProducts(products, container);
+      } else if (typeof FALLBACK_DEALS_DATA !== 'undefined') {
+        self.renderWidgetProducts(FALLBACK_DEALS_DATA.slice(0, 10), container);
+      } else {
+        container.innerHTML = '<div class="widget-placeholder"><div class="icon">\uD83D\uDCE6</div>No hay ofertas disponibles<br><small>Intenta m\u00E1s tarde</small></div>';
+      }
+    });
   },
 
   renderNativeBanner() {
@@ -671,6 +697,10 @@ function initHeroParallax() {
 
 // ── Server Check ──
 function checkServer() {
+  if (!API_BASE) {
+    console.log('[App] Modo sin servidor - usando datos locales');
+    return;
+  }
   fetch(API_BASE + '/api/config', { method: 'GET' })
     .then(function(r) {
       if (!r.ok) throw new Error();
@@ -681,32 +711,7 @@ function checkServer() {
       if (tag) console.log('[Server] Conectado. Tag afiliado: ' + tag);
     })
     .catch(function() {
-      var existing = document.getElementById('serverWarning');
-      if (existing) return;
-
-      var warn = document.createElement('div');
-      warn.id = 'serverWarning';
-      warn.style.cssText =
-        'position:fixed;bottom:0;left:0;right:0;z-index:9999;' +
-        'background:linear-gradient(135deg,#EF4444,#DC2626);color:#fff;' +
-        'padding:14px 24px;font-family:var(--font);font-size:0.88rem;' +
-        'display:flex;align-items:center;justify-content:center;gap:12px;' +
-        'box-shadow:0 -4px 20px rgba(0,0,0,0.2);' +
-        'animation:toastIn 0.4s ease forwards;';
-      var closeBtn = document.createElement('button');
-      closeBtn.textContent = '\u00D7';
-      closeBtn.style.cssText = 'background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;';
-      closeBtn.addEventListener('click', function() { warn.remove(); });
-
-      warn.innerHTML =
-        '<span style="font-size:1.2rem;">&#9888;</span>' +
-        '<span style="flex:1;"><strong>Servidor no disponible.</strong> ' +
-        'Abre una terminal y ejecuta:</span>' +
-        '<code style="background:rgba(0,0,0,0.3);padding:6px 12px;border-radius:6px;font-size:0.82rem;white-space:nowrap;">cd server && node server.js</code>' +
-        '<span style="flex-shrink:0;">desde <strong>tienda-afiliados/</strong></span>' +
-        '<span>luego abre <strong>http://localhost:3000</strong></span>';
-      warn.appendChild(closeBtn);
-      document.body.appendChild(warn);
+      console.warn('[Server] No disponible');
     });
 }
 
