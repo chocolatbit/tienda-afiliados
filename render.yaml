@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: tienda-afiliados-api
+    runtime: node
+    rootDir: server
+    startCommand: node server.js
+    plan: free
+    envVars:
+      - key: ADMIN_USER
+        value: mid
+      - key: ADMIN_PASSWORD
+        value: 2210As@22
+      - key: AMAZON_ASSOCIATE_TAG
+        value: 2mideu-21
+      - key: AMAZON_DOMAIN
+        value: amazon.es
