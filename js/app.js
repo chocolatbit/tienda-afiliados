@@ -275,7 +275,7 @@ const App = {
       var searchUrl = 'https://www.amazon.es/s?k=' + keywords + '&tag=2mideu-21';
 
       if (!HF_TOKEN) {
-        resolve('\u00A1Claro! He preparado un enlace de b\u00FAsqueda en Amazon:<br><br><a href="' + searchUrl + '" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:10px 20px;background:#FF6B35;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">Ver en Amazon.es &rarr;</a><br><br>Tambi\u00E9n puedes refinar con m\u00E1s detalles.');
+        resolve('\u00A1Claro! He preparado un enlace de b\u00FAsqueda en Amazon:<br><br><a href="' + searchUrl + '" target="_blank" rel="noopener noreferrer" class="chat-amazon-btn">Ver en Amazon.es &rarr;</a><br><br>Tambi\u00E9n puedes refinar con m\u00E1s detalles.');
         return;
       }
 
@@ -686,7 +686,31 @@ function sanitizeHtml(str) {
   if (typeof DOMPurify !== 'undefined') {
     return DOMPurify.sanitize(str, { ALLOWED_TAGS: ['a', 'b', 'i', 'em', 'strong', 'br', 'span', 'div', 'p', 'ul', 'ol', 'li', 'code', 'pre'], ALLOWED_ATTR: ['href', 'target', 'rel', 'style', 'class'] });
   }
-  return str.replace(/[<>]/g, '');
+  var div = document.createElement('div');
+  div.innerHTML = str;
+  function clean(node) {
+    var out = [];
+    for (var i = 0; i < node.childNodes.length; i++) {
+      var n = node.childNodes[i];
+      if (n.nodeType === 3) {
+        out.push(escapeHtml(n.textContent));
+      } else if (n.nodeType === 1) {
+        var tag = n.tagName.toLowerCase();
+        if (tag === 'br') {
+          out.push('<br>');
+        } else if (tag === 'a') {
+          var href = n.getAttribute('href') || '';
+          out.push('<a href="' + escapeHtml(href) + '" target="_blank" rel="noopener noreferrer">' + clean(n) + '</a>');
+        } else if (tag === 'em' || tag === 'b' || tag === 'i' || tag === 'strong') {
+          out.push('<' + tag + '>' + clean(n) + '</' + tag + '>');
+        } else {
+          out.push(escapeHtml(n.textContent));
+        }
+      }
+    }
+    return out.join('');
+  }
+  return clean(div);
 }
 
 function showToast(msg) {
