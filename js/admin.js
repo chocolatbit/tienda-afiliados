@@ -1,3 +1,10 @@
+function sha256(str) {
+  var buffer = new TextEncoder().encode(str);
+  return crypto.subtle.digest('SHA-256', buffer).then(function(hash) {
+    return Array.from(new Uint8Array(hash)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+  });
+}
+
 const Admin = {
   token: null,
   pendingProduct: null,
@@ -65,23 +72,18 @@ const Admin = {
     errorEl.style.display = 'none';
 
     try {
-      var res = await fetch(API_BASE + '/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username, password: password })
-      });
-      var data = await res.json();
-      if (data.ok && data.token) {
-        this.token = data.token;
-        sessionStorage.setItem('afiliadospro_admin_token', data.token);
+      var hash = await sha256(password);
+      if (username === ADMIN_USER && hash === ADMIN_PASSWORD_HASH) {
+        this.token = 'local_' + hash.slice(0, 16);
+        sessionStorage.setItem('afiliadospro_admin_token', this.token);
         this.closeLogin();
         this.open();
       } else {
-        errorEl.textContent = data.error || 'Credenciales incorrectas';
+        errorEl.textContent = 'Credenciales incorrectas';
         errorEl.style.display = '';
       }
     } catch (err) {
-      errorEl.textContent = 'Error de conexi\u00F3n con el servidor';
+      errorEl.textContent = 'Error de conexi\u00F3n';
       errorEl.style.display = '';
     } finally {
       btn.disabled = false;
@@ -98,8 +100,6 @@ const Admin = {
     this.modal.classList.add('open');
     this.renderList();
     document.body.style.overflow = 'hidden';
-    var urlInput = document.getElementById('fieldAmazonUrl');
-    if (urlInput) setTimeout(function() { urlInput.focus(); }, 100);
   },
 
   close() {
@@ -149,56 +149,75 @@ const Admin = {
       return;
     }
 
-    var urlInput = document.getElementById('fieldAmazonUrl');
-    var url = urlInput ? urlInput.value.trim() : '';
-    if (!url) {
-      showToast('Pega la URL del producto en Amazon');
+    var nameInput = document.getElementById('fieldName');
+    var priceInput = document.getElementById('fieldPrice');
+    var linkInput = document.getElementById('fieldAffiliateLink');
+    var catSelect = document.getElementById('fieldCategory');
+
+    var name = nameInput ? nameInput.value.trim() : '';
+    var price = priceInput ? priceInput.value.trim() : '';
+    var link = linkInput ? linkInput.value.trim() : '';
+
+    if (!name || !link) {
+      showToast('Completa el nombre y el enlace de afiliado');
       return;
     }
-    if (!url.toLowerCase().includes('amazon') && !url.toLowerCase().includes('amzn')) {
-      showToast('Debe ser una URL de Amazon v\u00E1lida');
+
+    var productData = {
+      name: name,
+      image: '',
+      price: price,
+      category: catSelect ? catSelect.value : '',
+      affiliateLink: link,
+      originalPrice: '',
+      discountPercent: '',
+      dealBadge: ''
+    };
+
+    this.addProduct(productData);
+    showToast('\u2705 Producto agregado: ' + name.substring(0, 40));
+    nameInput.value = '';
+    priceInput.value = '';
+    linkInput.value = '';
+  },
+
+  renderList() {
+    var items = Products.getAll();
+    if (!this.countEl) return;
+    var catSelect = document.getElementById('fieldCategory');
+    var selectedCat = catSelect ? catSelect.value : '';
+    if (selectedCat) {
+      items = items.filter(function(p) { return p.category === selectedCat; });
+    }
+    this.countEl.textContent = String(items.length);
+    if (items.length === 0) {
+      this.listEl.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;padding:8px 0;">No hay productos en esta categor\u00EDa.</div>';
       return;
     }
-
-    if (btn) { btn.disabled = true; btn.textContent = 'Agregando...'; }
-
-    try {
-      var controller = new AbortController();
-      var timeoutId = setTimeout(function() { controller.abort(); }, 20000);
-
-      var res = await fetch(API_BASE + '/api/scrape', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-admin-token': this.token
-        },
-        body: JSON.stringify({ url: url }),
-        signal: controller.signal
+    var self = this;
+    var html = '<div class="admin-cat-header">' + getCategoryLabel(selectedCat) + '</div>';
+    for (var j = 0; j < items.length; j++) {
+      var p = items[j];
+      html += '<div class="admin-product-item">' +
+        '<img src="' + escapeHtml(p.image) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src=\'/placeholder.svg\'">' +
+        '<div class="info">' +
+          '<div class="name">' + escapeHtml(p.name) + '</div>' +
+          '<div class="meta">' + escapeHtml(p.price) + ' \u00B7 ' + (p.subcategory || '') + '</div>' +
+        '</div>' +
+        '<button class="del-btn" data-id="' + p.id + '" title="Eliminar">&times;</button>' +
+      '</div>';
+    }
+    this.listEl.innerHTML = html;
+    this.listEl.querySelectorAll('.del-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        showConfirm('\u00BFEliminar este producto?', 'No se puede deshacer.', function() {
+          Products.remove(btn.dataset.id);
+          self.renderList();
+          if (typeof App !== 'undefined') App.render();
+        });
       });
-      clearTimeout(timeoutId);
-
-      if (res.status === 401) {
-        showToast('\u274C Sesi\u00F3n expirada. Inicia sesi\u00F3n de nuevo.');
-        this.logout();
-        return;
-      }
-      if (!res.ok) {
-        var errData = await res.json().catch(function() { return {}; });
-        throw new Error(errData.error || 'Error del servidor (HTTP ' + res.status + ')');
-      }
-
-      var data = await res.json();
-      var category = document.getElementById('fieldCategory').value;
-
-      var productData = {
-        name: data.name || 'Producto sin nombre',
-        image: data.image || '',
-        price: data.price || '',
-        category: category,
-        affiliateLink: data.affiliateLink || '',
-        originalPrice: data.originalPrice || '',
-        discountPercent: data.discountPercent || '',
-        dealBadge: data.dealBadge || ''
+    });
+  }
 };
 
 function showConfirm(title, message, onConfirm) {
@@ -245,69 +264,3 @@ function showConfirm(title, message, onConfirm) {
     if (e.target === overlay) overlay.remove();
   });
 }
-
-      if (productData.image) {
-        this.addProduct(productData);
-        showToast('\u2705 Producto agregado: ' + (productData.name || '').substring(0, 40));
-      } else {
-        this.pendingProduct = productData;
-        if (group) group.style.display = '';
-        if (imageInput) { imageInput.value = ''; imageInput.focus(); }
-        if (btn) { btn.disabled = false; btn.textContent = 'Confirmar'; }
-        showToast('\u26A0\uFE0F No se encontr\u00F3 imagen. Pega la URL manualmente y confirma.');
-      }
-    } catch (err) {
-      var msg = err.message || '';
-      if (err.name === 'AbortError') {
-        showToast('\u274C La solicitud al servidor tard\u00F3 demasiado.');
-      } else if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
-        showToast('\u274C No se puede conectar con el servidor.');
-      } else {
-        showToast('\u274C ' + msg);
-      }
-    } finally {
-      if (btn && !this.pendingProduct) {
-        btn.disabled = false;
-        btn.textContent = 'Agregar';
-      }
-    }
-  },
-
-  renderList() {
-    var items = Products.getAll();
-    if (!this.countEl) return;
-    var catSelect = document.getElementById('fieldCategory');
-    var selectedCat = catSelect ? catSelect.value : '';
-    if (selectedCat) {
-      items = items.filter(function(p) { return p.category === selectedCat; });
-    }
-    this.countEl.textContent = String(items.length);
-    if (items.length === 0) {
-      this.listEl.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;padding:8px 0;">No hay productos en esta categor\u00EDa.</div>';
-      return;
-    }
-    var self = this;
-    var html = '<div class="admin-cat-header">' + getCategoryLabel(selectedCat) + '</div>';
-    for (var j = 0; j < items.length; j++) {
-      var p = items[j];
-      html += '<div class="admin-product-item">' +
-        '<img src="' + escapeHtml(p.image) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src=\'/placeholder.svg\'">' +
-        '<div class="info">' +
-          '<div class="name">' + escapeHtml(p.name) + '</div>' +
-          '<div class="meta">' + escapeHtml(p.price) + ' \u00B7 ' + (p.subcategory || '') + '</div>' +
-        '</div>' +
-        '<button class="del-btn" data-id="' + p.id + '" title="Eliminar">&times;</button>' +
-      '</div>';
-    }
-    this.listEl.innerHTML = html;
-    this.listEl.querySelectorAll('.del-btn').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        showConfirm('\u00BFEliminar este producto?', 'No se puede deshacer.', function() {
-          Products.remove(btn.dataset.id);
-          self.renderList();
-          if (typeof App !== 'undefined') App.render();
-        });
-      });
-    });
-  }
-};

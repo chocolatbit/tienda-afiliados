@@ -1431,6 +1431,15 @@ hr {
   text-decoration: underline;
   word-break: break-all;
 }
+.chat-amazon-btn {
+  display: inline-block;
+  padding: 10px 20px;
+  background: #FF6B35;
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+}
 .chat-msg.typing {
   align-self: flex-start;
   background: var(--bg);

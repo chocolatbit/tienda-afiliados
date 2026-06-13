@@ -259,6 +259,56 @@ const App = {
     this.loadWidget();
   },
 
+  getChatReply(text) {
+    var self = this;
+    return new Promise(function(resolve) {
+      var stopWords = ['busca','buscar','encuentra','encuentrame','quiero','necesito','recomiendame','recomendar','mejor','mejores','comprar','un','una','unos','unas','el','la','los','las','por','para','con','sin','que','de','del','en','y','o','a','e','i','u','lo','le','se','no','es','porfavor','por favor','gracias','hola','barato','barata','baratos','baratas','caro','cara','precio','euros','\u20AC','euro'];
+      var clean = text.toLowerCase().replace(/[^\w\s\u00E1\u00E9\u00ED\u00F3\u00FA\u00F1]/gi, ' ').replace(/\d+\u20AC?/g, '').trim();
+      var words = clean.split(/\s+/).filter(function(w) { return w.length > 1 && stopWords.indexOf(w) === -1; });
+
+      if (words.length === 0) {
+        resolve('\u00A1Hola! Puedes pedirme que busque productos en Amazon. Por ejemplo: <em>"busca un port\u00E1til gaming"</em> o <em>"recomi\u00E9ndame auriculares bluetooth"</em>.');
+        return;
+      }
+
+      var keywords = encodeURIComponent(words.join(' '));
+      var searchUrl = 'https://www.amazon.es/s?k=' + keywords + '&tag=2mideu-21';
+
+      if (!HF_TOKEN) {
+        resolve('\u00A1Claro! He preparado un enlace de b\u00FAsqueda en Amazon:<br><br><a href="' + searchUrl + '" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:10px 20px;background:#FF6B35;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">Ver en Amazon.es &rarr;</a><br><br>Tambi\u00E9n puedes refinar con m\u00E1s detalles.');
+        return;
+      }
+
+      var systemPrompt = 'Eres un asistente de compras en Amazon.es. Responde MUY BREVE, m\u00E1ximo 1 l\u00EDnea corta. Incluye SIEMPRE un enlace HTML como <a href="https://www.amazon.es/s?k=PALABRAS&tag=2mideu-21">Ver en Amazon</a>. Ejemplo: <a href="https://www.amazon.es/s?k=portatil+gaming&tag=2mideu-21">Ver en Amazon</a>';
+
+      fetch('https://api-inference.huggingface.co/models/' + HF_MODEL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + HF_TOKEN },
+        body: JSON.stringify({
+          inputs: '<|system|>\n' + systemPrompt + '\n<|user|>\n' + text + '\n<|assistant|>\n',
+          parameters: { max_new_tokens: 200, temperature: 0.5, return_full_text: false }
+        }),
+        signal: AbortSignal.timeout(15000)
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var reply = '';
+        if (Array.isArray(data) && data[0] && data[0].generated_text) reply = data[0].generated_text.trim();
+        else if (data.generated_text) reply = data.generated_text.trim();
+
+        if (reply) {
+          if (!reply.includes('tag=')) reply += (reply.includes('?') ? '&' : '?') + 'tag=2mideu-21';
+          resolve(reply.replace(/\n/g, '<br>'));
+        } else {
+          resolve('\u00A1Claro! Busca en Amazon aqu\u00ED:<br><br><a href="' + searchUrl + '" target="_blank" rel="noopener noreferrer" class="chat-amazon-btn">Ver en Amazon.es &rarr;</a>');
+        }
+      })
+      .catch(function() {
+        resolve('\u00A1Claro! Busca en Amazon aqu\u00ED:<br><br><a href="' + searchUrl + '" target="_blank" rel="noopener noreferrer" class="chat-amazon-btn">Ver en Amazon.es &rarr;</a>');
+      });
+    });
+  },
+
   bindChat() {
     var input = document.getElementById('chatInput');
     var btn = document.getElementById('chatSendBtn');
@@ -277,25 +327,11 @@ const App = {
       msgs.scrollTop = msgs.scrollHeight;
 
       var self = this;
-      fetch(API_BASE + '/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text })
-      })
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
+      this.getChatReply(text).then(function(reply) {
         msgs.querySelector('.typing')?.remove();
-        var raw = data.reply || data.error || 'Lo siento, no pude procesar tu solicitud.';
-        var reply = sanitizeHtml(raw).replace(/\n/g, '<br>');
-        msgs.innerHTML += '<div class="chat-msg assistant">' + reply + '</div>';
+        msgs.innerHTML += '<div class="chat-msg assistant">' + sanitizeHtml(reply) + '</div>';
         msgs.scrollTop = msgs.scrollHeight;
-      })
-      .catch(function() {
-        msgs.querySelector('.typing')?.remove();
-        msgs.innerHTML += '<div class="chat-msg assistant">Error de conexi\u00F3n. Verifica que el servidor est\u00E9 corriendo.</div>';
-        msgs.scrollTop = msgs.scrollHeight;
-      })
-      .finally(function() {
+      }).finally(function() {
         self.chatSending = false;
         btn.disabled = false;
       });
