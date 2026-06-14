@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-MNRZ2DRCWT"></script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3440626540394504" crossorigin="anonymous"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-MNRZ2DRCWT');
+</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Contacta con Afiliados Pro. Envíanos tus consultas, sugerencias o dudas sobre nuestros productos.">
+  <title>Contacto - Afiliados Pro</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛒</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .contact-page {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 40px 24px 60px;
+    }
+    .contact-page h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .contact-page .subtitle {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+    .contact-form {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .contact-form label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+      display: block;
+      margin-bottom: 4px;
+    }
+    .contact-form input,
+    .contact-form textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg-card);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .contact-form input:focus,
+    .contact-form textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(255,107,53,0.12);
+    }
+    .contact-form textarea {
+      min-height: 140px;
+      resize: vertical;
+    }
+    .contact-form .submit-btn {
+      padding: 14px 28px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--font);
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background var(--transition);
+      align-self: flex-start;
+    }
+    .contact-form .submit-btn:hover {
+      background: var(--primary-hover);
+    }
+    .contact-form .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .contact-info {
+      margin-top: 40px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+    .contact-info h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .contact-info p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 24px;
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+    .success-msg {
+      display: none;
+      background: #22C55E;
+      color: #fff;
+      padding: 16px 20px;
+      border-radius: var(--radius-sm);
+      font-weight: 500;
+      margin-bottom: 20px;
+    }
+    .success-msg.show {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">Afiliados<span>Pro</span></a>
+      <div class="header-actions">
+        <button class="theme-toggle" id="themeToggle" title="Cambiar modo">&#127769;</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="contact-page">
+    <h1>Contacto</h1>
+    <p class="subtitle">¿Tienes alguna pregunta, sugerencia o problema? Estaremos encantados de ayudarte. Rellena el formulario y te responderemos lo antes posible.</p>
+
+    <div class="success-msg" id="successMsg">&#10003; Mensaje enviado correctamente. Te responderemos pronto.</div>
+
+    <form class="contact-form" id="contactForm">
+      <div>
+        <label for="name">Nombre</label>
+        <input type="text" id="name" placeholder="Tu nombre" required>
+      </div>
+      <div>
+        <label for="email">Correo electrónico</label>
+        <input type="email" id="email" placeholder="tu@email.com" required>
+      </div>
+      <div>
+        <label for="message">Mensaje</label>
+        <textarea id="message" placeholder="Escribe tu mensaje..." required></textarea>
+      </div>
+      <button type="submit" class="submit-btn">Enviar mensaje</button>
+    </form>
+
+    <div class="contact-info">
+      <h2>Información de contacto</h2>
+      <p>Si prefieres contactarnos directamente, puedes escribirnos a través del formulario y te responderemos a la mayor brevedad posible. Todos los campos son obligatorios.</p>
+      <p>También puedes consultar nuestra <a href="privacidad.html">Política de Privacidad</a> para conocer cómo tratamos tus datos.</p>
+    </div>
+
+    <a href="index.html" class="back-link">&larr; Volver a la tienda</a>
+  </div>
+
+  <footer class="footer">
+    <p>&copy; 2026 <a href="index.html">Afiliados Pro</a> &mdash; Tienda de afiliados. Los precios y disponibilidad pueden variar.</p>
+    <p class="footer-cookie-links">
+      <a href="privacidad.html">Política de Privacidad</a>
+      &middot;
+      <a href="aviso-legal.html">Aviso Legal</a>
+      &middot;
+      <a href="contacto.html">Contacto</a>
+      &middot;
+      <a href="#" data-cookie-action="policy">Política de cookies</a>
+      &middot;
+      <a href="#" data-cookie-action="revoke">Gestionar cookies</a>
+    </p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.4/purify.min.js" integrity="sha512-L4N3l9W3L2a40l24BZRxUoAy2QJqqYwO6B+RPaasGTg4YwYKJrFqQ8S3RjDLf1QDXG0/1KMs6LiVb1UdzAMh6g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="js/config.js"></script>
+  <script src="js/cookies.js"></script>
+  <script>
+    const themeToggle = document.getElementById('themeToggle');
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark');
+    }
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    document.getElementById('contactForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const btn = this.querySelector('.submit-btn');
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+      const formData = new FormData();
+      formData.append('name', document.getElementById('name').value);
+      formData.append('email', document.getElementById('email').value);
+      formData.append('message', document.getElementById('message').value);
+      fetch('https://formspree.io/f/xqapvpkj', {
+        method: 'POST',
+        body: formData,
+        headers: { 'Accept': 'application/json' }
+      }).then(r => {
+        if (r.ok) {
+          document.getElementById('successMsg').classList.add('show');
+          this.reset();
+        } else {
+          alert('Error al enviar. Inténtalo de nuevo.');
+        }
+      }).catch(() => {
+        alert('Error de conexión. Inténtalo de nuevo.');
+      }).finally(() => {
+        btn.disabled = false;
+        btn.textContent = 'Enviar mensaje';
+      });
+    });
+  </script>
+</body>
+</html>
