@@ -19,7 +19,7 @@ npm install
 Edita `server/.env` con tus datos:
 
 ```
-AMAZON_ASSOCIATE_TAG=2mideu-21
+AMAZON_ASSOCIATE_TAG=
 AMAZON_DOMAIN=amazon.es
 PORT=3000
 ```
