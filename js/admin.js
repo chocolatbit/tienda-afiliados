@@ -7,6 +7,7 @@ function sha256(str) {
 
 const Admin = {
   token: null,
+  serverToken: null,
   pendingProduct: null,
   loginModal: null,
   modal: null,
@@ -78,6 +79,8 @@ const Admin = {
         sessionStorage.setItem('afiliadospro_admin_token', this.token);
         this.closeLogin();
         this.open();
+        // Obtener token del servidor para scraping
+        this.getServerToken();
       } else {
         errorEl.textContent = 'Credenciales incorrectas';
         errorEl.style.display = '';
@@ -100,6 +103,8 @@ const Admin = {
     this.modal.classList.add('open');
     this.renderList();
     document.body.style.overflow = 'hidden';
+    var urlInput = document.getElementById('fieldAmazonUrl');
+    if (urlInput) setTimeout(function() { urlInput.focus(); }, 100);
   },
 
   close() {
@@ -119,7 +124,21 @@ const Admin = {
     var group = document.getElementById('imageUrlGroup');
     if (group) group.style.display = 'none';
     var btn = document.querySelector('.autofill-btn');
-    if (btn) btn.textContent = 'Agregar';
+    if (btn) { btn.disabled = false; btn.textContent = 'Agregar'; }
+  },
+
+  async getServerToken() {
+    try {
+      var res = await fetch(API_BASE + '/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: ADMIN_SERVER_USER, password: ADMIN_SERVER_PASSWORD })
+      });
+      var data = await res.json();
+      if (data.ok) this.serverToken = data.token;
+    } catch (e) {
+      console.warn('[Admin] No se pudo autenticar con el servidor para scraping');
+    }
   },
 
   addProduct(data) {
@@ -149,36 +168,83 @@ const Admin = {
       return;
     }
 
-    var nameInput = document.getElementById('fieldName');
-    var priceInput = document.getElementById('fieldPrice');
-    var linkInput = document.getElementById('fieldAffiliateLink');
-    var catSelect = document.getElementById('fieldCategory');
-
-    var name = nameInput ? nameInput.value.trim() : '';
-    var price = priceInput ? priceInput.value.trim() : '';
-    var link = linkInput ? linkInput.value.trim() : '';
-
-    if (!name || !link) {
-      showToast('Completa el nombre y el enlace de afiliado');
+    var urlInput = document.getElementById('fieldAmazonUrl');
+    var url = urlInput ? urlInput.value.trim() : '';
+    if (!url) {
+      showToast('Pega la URL del producto en Amazon');
+      return;
+    }
+    if (!url.toLowerCase().includes('amazon') && !url.toLowerCase().includes('amzn')) {
+      showToast('Debe ser una URL de Amazon v\u00E1lida');
       return;
     }
 
-    var productData = {
-      name: name,
-      image: '',
-      price: price,
-      category: catSelect ? catSelect.value : '',
-      affiliateLink: link,
-      originalPrice: '',
-      discountPercent: '',
-      dealBadge: ''
-    };
+    if (btn) { btn.disabled = true; btn.textContent = 'Agregando...'; }
 
-    this.addProduct(productData);
-    showToast('\u2705 Producto agregado: ' + name.substring(0, 40));
-    nameInput.value = '';
-    priceInput.value = '';
-    linkInput.value = '';
+    try {
+      var controller = new AbortController();
+      var timeoutId = setTimeout(function() { controller.abort(); }, 20000);
+
+      var res = await fetch(API_BASE + '/api/scrape', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-token': this.serverToken || ''
+        },
+        body: JSON.stringify({ url: url }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (res.status === 401) {
+        showToast('\u274C Sesi\u00F3n expirada. Inicia sesi\u00F3n de nuevo.');
+        this.logout();
+        return;
+      }
+      if (!res.ok) {
+        var errData = await res.json().catch(function() { return {}; });
+        throw new Error(errData.error || 'Error del servidor (HTTP ' + res.status + ')');
+      }
+
+      var data = await res.json();
+      var category = document.getElementById('fieldCategory').value;
+
+      var productData = {
+        name: data.name || 'Producto sin nombre',
+        image: data.image || '',
+        price: data.price || '',
+        category: category,
+        affiliateLink: data.affiliateLink || '',
+        originalPrice: data.originalPrice || '',
+        discountPercent: data.discountPercent || '',
+        dealBadge: data.dealBadge || ''
+      };
+
+      if (productData.image) {
+        this.addProduct(productData);
+        showToast('\u2705 Producto agregado: ' + (productData.name || '').substring(0, 40));
+      } else {
+        this.pendingProduct = productData;
+        if (group) group.style.display = '';
+        if (imageInput) { imageInput.value = ''; imageInput.focus(); }
+        if (btn) { btn.disabled = false; btn.textContent = 'Confirmar'; }
+        showToast('\u26A0\uFE0F No se encontr\u00F3 imagen. Pega la URL manualmente y confirma.');
+      }
+    } catch (err) {
+      var msg = err.message || '';
+      if (err.name === 'AbortError') {
+        showToast('\u274C La solicitud al servidor tard\u00F3 demasiado.');
+      } else if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
+        showToast('\u274C No se puede conectar con el servidor.');
+      } else {
+        showToast('\u274C ' + msg);
+      }
+    } finally {
+      if (btn && !this.pendingProduct) {
+        btn.disabled = false;
+        btn.textContent = 'Agregar';
+      }
+    }
   },
 
   renderList() {

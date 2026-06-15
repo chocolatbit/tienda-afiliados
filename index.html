@@ -209,16 +209,11 @@
 
       <form id="adminForm">
         <div class="full">
-          <label>Nombre del producto</label>
-          <input type="text" id="fieldName" placeholder="Ej: Portátil Samsung Galaxy Book" required>
-        </div>
-        <div class="full">
-          <label>Precio</label>
-          <input type="text" id="fieldPrice" placeholder="Ej: €599,00">
-        </div>
-        <div class="full">
-          <label>Enlace de afiliado Amazon</label>
-          <input type="url" id="fieldAffiliateLink" placeholder="https://www.amazon.es/dp/B0XXXXX?tag=2mideu-21" required>
+          <label>URL del producto en Amazon</label>
+          <div class="url-input-row">
+            <input type="url" id="fieldAmazonUrl" placeholder="https://www.amazon.es/dp/B0XXXXX" required>
+            <button type="submit" id="autoFillBtn" class="autofill-btn">&#10133; Agregar</button>
+          </div>
         </div>
         <div>
           <label>Categor&iacute;a</label>
@@ -232,7 +227,6 @@
           <label>URL de la imagen</label>
           <input type="url" id="fieldImageUrl" placeholder="https://ejemplo.com/imagen.jpg">
         </div>
-        <button type="submit" id="autoFillBtn" class="autofill-btn">&#10133; Agregar producto</button>
       </form>
 
       <div class="admin-products-title">&#128230; Productos existentes (<span id="adminCount">0</span>)</div>
